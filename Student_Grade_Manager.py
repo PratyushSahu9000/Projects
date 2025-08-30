@@ -1,31 +1,55 @@
-marks = {}
+import json
+import os
 
-subject_count = int(input("Enter number of subjects : "))
+marks = {}
 subjects = []
 
-for subject in range(subject_count):
-    subjects.append(input(f"Enter name of subject {subject+1} : "))
-   
+Data_file = "students.json"
+
+def load_data():
+    global marks, subjects
+    if os.path.exists(Data_file):
+        with open(Data_file, "r") as f:
+            data = json.load(f)
+            marks = data.get("marks" , {})
+            subjects = data.get("subjects", [])
+    else:
+        marks = {}
+        subjects = []
+
+def save_data():
+    with open(Data_file, "w") as f:
+        json.dump({"marks": marks, "subjects": subjects} , f, indent=1)
+
+def setup_subjects():
+    if not subjects:
+        subject_count = int(input("Enter number of subjects : "))
+        for i in range(subject_count):
+            subjects.append(input(f"Enter name of subject {i+1} : "))
+        save_data()    
+
 def add_student():
-    roll = int(input("Enter roll number : "))
-    if roll in marks:
+    roll = input("Enter roll number : ")
+    if str(roll) in marks:
         print("Student already exists.")
     else:
-        marks[roll] = {}
+        marks[str(roll)] = {}
         for subject in subjects:
-            marks[roll][subject] = int(input(f"Enter marks for {subject} : "))
+            marks[str(roll)][subject] = int(input(f"Enter marks for {subject} : "))
+        save_data()    
         print("Student added successfully!\n")
 
 def del_student():
-    roll = int(input("Enter roll number to delete : "))
+    roll = input("Enter roll number to delete : ")
     if roll in marks:
         del marks[roll]
+        save_data()
         print("Student deleted successfully!\n")
     else:
         print("Student Not Found!\n")
 
 def update_student():
-    roll = int(input("Enter roll number to update : "))
+    roll = input("Enter roll number to update : ")
     if roll not in marks:
         print("Student Not Found!")
     else:
@@ -34,6 +58,7 @@ def update_student():
             new_marks = input(f"Enter new marks for {subject} (press Enter to skip) : ")
             if new_marks.strip() != "":
                 marks[roll][subject] = int(new_marks)
+        save_data()        
         print("Marks Updated Successfully!\n")
 
 def view_student():
@@ -47,8 +72,19 @@ def view_student():
         avg = total / len(subjects)
         for subject, mark in sub_marks.items():
             print(f"   {subject} : " , mark)
-        print(f"   Total: {total}, Average: {avg:.2f}\n")    
+        print(f"   Total: {total}, Average: {avg:.2f}\n")
 
+def reset_subjects():
+    global subjects
+    subject_count = int(input("Enter new number of subjects : "))
+    subjects = []
+    for i in range(subject_count):
+        subjects.append(input(f"Enter name of subject {i+1} : "))
+    save_data()
+    print("Subjects reset successfully!\n")            
+
+load_data()
+setup_subjects()
 
 while True:
     print("----- Student Grade Manager -----")
@@ -56,7 +92,8 @@ while True:
     print("2. Delete Student Marks")
     print("3. Update Student")
     print("4. View All Students")
-    print("5. Exit")
+    print("5. Reset Subjects")
+    print("6. Exit")
 
     choice = int(input("Enter Choice : "))
 
@@ -67,8 +104,10 @@ while True:
     elif choice == 3:
         update_student()
     elif choice == 4:
-        view_student()        
+        view_student()
     elif choice == 5:
+        reset_subjects()            
+    elif choice == 6:
         print("Exiting program...")
         break
     else:
